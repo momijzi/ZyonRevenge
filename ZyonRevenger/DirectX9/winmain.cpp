@@ -14,7 +14,7 @@
 
 #define screenWidth 980
 #define screenHeight 840
-#define Pixel 24
+#define Pixel 50
 
 /*ギミック（悪魔の能力）
 
@@ -252,7 +252,7 @@ Texture textureStair;
 
 Texture textureWater;
 Texture textureIce;
-
+Texture Player;
 
 Texture textureStart;
 Texture textureOver;
@@ -273,7 +273,7 @@ int _stdcall WinMain
 	//変数の宣言-------------------------------------
 
 	//プレイヤーの関連
-	int PlayerX, PlayerY;	//プレイヤーの座標
+	float PlayerX, PlayerY;	//プレイヤーの座標
 	float PlayerSpeed;		//プレイヤーのスピード
 
 	//マップ関係//今回壁はこの外にかってに描画することにする　のちのち配列に組み込むかも
@@ -312,7 +312,7 @@ int _stdcall WinMain
 		{ 0,0,0,1,1,1,0,0,0,0 , 0,0,0,0,0,0,0,0,1,1 , 1,1,1,1,1,1,1,1,1,1 , 0,0,0,0,0,0,0,0,0,0 },
 		{ 0,0,0,1,1,1,0,0,0,0 , 0,0,0,0,0,0,0,0,1,1 , 1,1,1,1,1,1,1,1,1,1 , 0,0,0,0,0,0,0,0,0,0 },
 		{ 0,1,1,1,1,1,1,1,0,0 , 0,0,0,0,0,0,0,0,1,1 , 1,1,1,1,1,1,1,1,1,1 , 0,0,0,0,0,0,0,0,0,0 },
-		{ 0,1,1,1,1,1,1,1,0,0 , 0,0,0,0,0,0,0,0,0,0 , 0,0,0,0,0,0,0,0,0,0 , 0,0,0,0,0,0,0,0,0,0 },
+		{ 0,1,1,1,2,1,1,1,0,0 , 0,0,0,0,0,0,0,0,0,0 , 0,0,0,0,0,0,0,0,0,0 , 0,0,0,0,0,0,0,0,0,0 },
 		{ 0,1,1,1,1,1,1,1,0,0 , 0,0,0,0,0,0,0,0,0,0 , 0,0,0,0,0,0,0,0,0,0 , 0,0,0,0,0,0,0,0,0,0 },
 		{ 0,1,1,1,1,1,1,1,0,0 , 0,0,0,0,0,0,0,0,0,0 , 0,0,0,0,0,0,0,0,0,0 , 0,0,0,0,0,0,0,0,0,0 },
 		{ 0,0,0,0,0,0,0,0,0,0 , 0,0,0,0,0,0,0,0,0,0 , 0,0,0,0,0,0,0,0,0,0 , 0,0,0,0,0,0,0,0,0,0 },
@@ -428,6 +428,7 @@ int _stdcall WinMain
 	textureStair.Load(_T("Texture/Stair.png"));
 	textureWater.Load(_T("Texture/Water.png"));
 	textureIce.Load(_T("Texture/Ice.png"));
+	Player.Load(_T("Texture/Player.png"));
 
 	//ここで読み込んだ画像の分割処理
 	
@@ -508,10 +509,25 @@ int _stdcall WinMain
 			{
 				case ZERO://エリア移動毎にここに入ればマップデータ変更
 					d3d.ClearScreen();
+					switch (Stage)
+					{
+						case TUTORIAL://初期エリア
+							switch (stageArea)
+							{
+								case Area1:
+									PlayerX = -5.0f;
+									PlayerY = 17.0f;
+									PlayerSpeed = 0.1f;
 
+								case Area2:
+
+									PlayerX = 0.0f;
+									PlayerY = 0.0f;
+									PlayerSpeed = 0.1f;
+							}
+					}
 					
-					
-					game = START;
+					game = PLAY;
 
 					break;
 				case START:
@@ -523,6 +539,25 @@ int _stdcall WinMain
 					}
 					break;
 				case PLAY:
+
+					//プレイヤーの移動
+					if (pDi->KeyState(DIK_UP))
+					{
+						PlayerY -= PlayerSpeed;
+					}
+					else if (pDi->KeyState(DIK_DOWN))
+					{
+						PlayerY += PlayerSpeed;
+					}
+					else if (pDi->KeyState(DIK_LEFT))
+					{
+						PlayerX -= PlayerSpeed;
+					}
+					else if (pDi->KeyState(DIK_RIGHT))
+					{
+						PlayerX += PlayerSpeed;
+					}
+
 					switch (Stage)
 					{
 						case TUTORIAL://初期エリア
@@ -530,12 +565,33 @@ int _stdcall WinMain
 							{
 								case Area1:
 									//各ギミックを書いていく
+
+
+
 									if (PlayerX == 5 && PlayerY == 1)
 									{
 										stageArea = Area2;
 									}
 									break;
 								case Area2:
+
+									if (pDi->KeyJustPressed(DIK_RETURN))
+									{
+										for (int y = 0; y < 30; y++)
+										{
+											for (int x = 0; x < 30; x++)
+											{
+												//水があるかチェック
+												if (StageMapT2[y][x] == 2)
+												{
+													//氷に変換
+													StageMapT2[y][x] = 3;
+												}
+											}
+										}
+
+									}
+
 									if (PlayerX == 5 && PlayerY == 1)
 									{
 										stageArea = Area2;
@@ -584,13 +640,13 @@ int _stdcall WinMain
 							//壁
 							if (StageMapT1[y][x] == 0)
 							{
-								sprite.SetPos((Pixel / 2) + (Pixel * x), (Pixel / 2) + (Pixel * y));
+								sprite.SetPos((Pixel / 2) + (Pixel * x) - PlayerX * Pixel, (Pixel / 2) + (Pixel * y) - PlayerY * Pixel);
 								sprite.Draw(textureWall);
 							}
 							//床
 							else if (StageMapT1[y][x] == 1)
 							{
-								sprite.SetPos((Pixel / 2) + (Pixel * x), (Pixel / 2) + (Pixel * y));
+								sprite.SetPos((Pixel / 2) + (Pixel * x) - PlayerX * Pixel, (Pixel / 2) + (Pixel * y) - PlayerY * Pixel);
 								sprite.Draw(textureFloor);
 							}
 						}
@@ -605,37 +661,40 @@ int _stdcall WinMain
 							//壁の描画　
 							if (StageMapT2[y][x] == 0)//壁
 							{
-								sprite.SetPos((Pixel / 2) + (Pixel * x), (Pixel / 2) + (Pixel * y));
+								sprite.SetPos((Pixel / 2) + (Pixel * x) - PlayerX * Pixel, (Pixel / 2) + (Pixel * y) - PlayerY * Pixel);
 								sprite.Draw(textureWall);
 							}
 							//床の描画
 							else if (StageMapT2[y][x] == 1)//床
 							{
-								sprite.SetPos((Pixel / 2) + (Pixel * x), (Pixel / 2) + (Pixel * y));
+								sprite.SetPos((Pixel / 2) + (Pixel * x) - PlayerX * Pixel, (Pixel / 2) + (Pixel * y) - PlayerY * Pixel);
 								sprite.Draw(textureFloor);
 							}
 							else if (StageMapT2[y][x] == 2)//水
 							{
-								sprite.SetPos((Pixel / 2) + (Pixel * x), (Pixel / 2) + (Pixel * y));
+								sprite.SetPos((Pixel / 2) + (Pixel * x) - PlayerX * Pixel, (Pixel / 2) + (Pixel * y) - PlayerY * Pixel);
 								sprite.Draw(textureWater);
 							}
 							else if (StageMapT2[y][x] == 3)//氷
 							{
-								sprite.SetPos((Pixel / 2) + (Pixel * x), (Pixel / 2) + (Pixel * y));
+								sprite.SetPos((Pixel / 2) + (Pixel * x) - PlayerX * Pixel, (Pixel / 2) + (Pixel * y) - PlayerY * Pixel);
 								sprite.Draw(textureIce);
 							}
 							else//階段
 							{
-								sprite.SetPos((Pixel / 2) + (Pixel * x), (Pixel / 2) + (Pixel * y));
+								sprite.SetPos((Pixel / 2) + (Pixel * x) - PlayerX * Pixel, (Pixel / 2) + (Pixel * y) - PlayerY * Pixel);
 								sprite.Draw(textureStair);
 							}
 						}
 					}
-					break;
+					break; 
 			}
-
+			//プレイヤーの描画
+			sprite.SetPos(screenWidth / 2,screenHeight / 2);
+			sprite.Draw(Player);
 			//描画終了の合図//--------------------------------------------------------------------------------------------
-
+			
+			
 			d3d.EndScene();
 
 			//バックバッファをフロントへ反映
