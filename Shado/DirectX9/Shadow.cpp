@@ -1,6 +1,5 @@
 #include"Shadow.h"
-#include"Sprite.h"
-#include"Texture.h"
+
 
 Shadow::Shadow()
 {
@@ -12,24 +11,43 @@ Shadow::Shadow()
 			stageShadow[x][y] = false;
 		}
 	}
+	lightWay = WEST;
 }
 Shadow::~Shadow()
 {
 
 }
 
-void Shadow::DrawShadow(int x , int y ,int Pixel)
+void Shadow::MoveShadow(int x, int y, int m)
 {
-	Sprite sSprite;
-	sSprite.SetSize(Pixel, Pixel);
-	sSprite.SetAngle(0);
+	for (int shadow = 0; shadow < m; shadow++)
+	{
+		switch (lightWay)
+		{
+			case EAST://“Œ
+				stageShadow[y][x + shadow] = true;
+				break;
+			case WEST://¼
+				shadow * -1;
+				stageShadow[y][x + shadow] = true;
+				break;
+			case SOUTH://“ì
+				stageShadow[y + shadow][x] = true;
+				break;
+			case NORTH://–k
+				shadow * -1;
+				stageShadow[y + shadow][x] = true;
+				break;
+		}
+	}
+}
 
-	Texture Shadow;
-	Shadow.Load(_T("Texture/Shadow.png"));
 
+void Shadow::DrawShadow(int x , int y ,int Pixel, Sprite sprite, Texture tex)
+{
 	if (stageShadow[y][x] == true)
 	{
-		sSprite.SetPos(Pixel / 2 + Pixel * x, Pixel / 2 + Pixel * y);
-		sSprite.Draw(Shadow);
+		sprite.SetPos(Pixel / 2 + Pixel * x, Pixel / 2 + Pixel * y);
+		sprite.Draw(tex);
 	}
 }

@@ -1,6 +1,6 @@
 #include"Player.h"
-#include"Sprite.h"
-#include"Texture.h"
+
+
 
 //コンストラクタという名の初期化
 Player::Player()
@@ -22,16 +22,9 @@ void Player::movePlayer()
 	playerY += mPlayerY;
 }
 
-void Player::Drawplayer(int Pixel , int screenWidth, int screenHeight)
+void Player::Drawplayer(int Pixel , int screenWidth, int screenHeight,Sprite sprite,Texture tex)
 {
-	Sprite pSprite;
-	pSprite.SetSize(Pixel, Pixel);
-	pSprite.SetAngle(0);
-
-	Texture player;
-	player.Load(_T("Texture/Player.png"));
-
-	pSprite.SetPos(screenWidth / 2, screenHeight / 2);
-	pSprite.Draw(player);
+	sprite.SetPos(screenWidth / 2, screenHeight / 2);
+	sprite.Draw(tex);
 }
 

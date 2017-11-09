@@ -12,9 +12,7 @@
 
 #include"time.h"
 #include"Player.h"
-#include"Light.h"
 #include"Shadow.h"
-#include"Map.h"
 
 
 #define screenWidth 800
@@ -233,9 +231,15 @@ HRESULT MakeWindow
 
 //スプライトのインスタンスを作成
 //パラメータは適当で
-Sprite sprite;
-Sprite sprite2;
 
+Sprite sprite;
+Texture texplayer;
+Texture texShadow;
+Texture texBlock00;
+Texture texBlock01;
+Texture texBlock02;
+Texture texBlock03;
+Texture Cursor;
 
 
 //エントリーポイント
@@ -248,20 +252,28 @@ int _stdcall WinMain
 	LPSTR lpCmdLine,		//コマンドライン引数
 	int nCmdShow)		//ウィンドウの表示状態
 {
-
 	//現在のゲームの状態
 	enum GameMode { ZERO,START, PLAY, OVER };
 	GameMode game = PLAY;
 
-	enum lightWay { EAST, WEST, SOUTH, NORTH };
-	lightWay lightway = WEST;
+	int stageMapT1[10][10] =
+	{	 					//10	
+		{ 0,0,0,0,0,0,0,0,0,0 },
+		{ 0,1,1,1,1,1,1,1,1,0 },
+		{ 0,0,0,0,0,0,0,0,0,0 },
+		{ 0,0,0,0,0,0,0,0,0,0 },
+		{ 0,0,0,0,0,0,0,0,0,0 },
+		{ 0,0,0,0,0,0,0,0,0,0 },
+		{ 0,1,1,1,1,1,1,1,1,0 },
+		{ 0,0,0,0,0,0,0,0,0,0 },
+		{ 0,0,0,0,0,0,0,0,0,0 },
+		{ 0,0,0,0,0,0,0,0,0,0 },
+	};
 
 	//他のファイルの値を使うため//-----------------------------------------------------------------------
 
 	Player player;
-	Light light;
 	Shadow shadow;
-	Map map;
 
 	srand((unsigned int)time(NULL));//乱数の初期値設定
 	
@@ -301,13 +313,20 @@ int _stdcall WinMain
 
 	//レンダーステートの設定  αブレンド
 	d3d.SetRenderState(RENDERSTATE::RENDER_ALPHABLEND);
-
+	
+	//スプライトの問題
 	sprite.SetAlpha(0.1);						//透明度の設定
 	sprite.SetSize(Pixel, Pixel);				//画像の大きさ
 	sprite.SetAngle(0);							//画像の回転
-
 	//テクスチャのインスタンスを作成
-	
+	texplayer.Load(_T("Texture/Player.png"));
+	texShadow.Load(_T("Texture/Shadow.png"));
+	texBlock00.Load(_T("Texture/Box00.png"));
+	texBlock01.Load(_T("Texture/Box01.png"));
+	texBlock02.Load(_T("Texture/Box02.png"));
+	texBlock03.Load(_T("Texture/Box03.png"));
+	Cursor.Load(_T("Texture/Cursor.png"));
+
 	//ここで読み込んだ画像の分割処理
 	
 	DirectInput * pDi = DirectInput::GetInstance();
@@ -362,42 +381,25 @@ int _stdcall WinMain
 			{
 				int breakpoint = 0;
 			}
-
-			//sprite.SetAngle(sprite.GetAngle_Rad()+0.0f);//回転ここのfを大きい値にするほど回転速度が上がる
-
-			static int dir = 1;//α
-			sprite.SetAlpha(sprite.GetAlpha() + (dir*0.01));
-			switch (dir)
-			{
-				case 1:
-					if (sprite.GetAlpha() >= 1)
-					{
-						dir = -1;
-					}
-					break;
-				case -1:
-					if (sprite.GetAlpha() <= 0)
-					{
-						dir = 1;
-					}
-					break;
-			}
+			
 			switch (game)
 			{
 				case ZERO:
 
-					game = PLAY;
+					break;
 				case START:
 
 					break;
 				case PLAY:
+					//プレイヤーの移動に関係
 					//何か方向キーを押したとき
 					if (pDi->KeyJustPressed(DIK_UP) ||
 						pDi->KeyJustPressed(DIK_DOWN) ||
 						pDi->KeyJustPressed(DIK_LEFT) ||
 						pDi->KeyJustPressed(DIK_RIGHT))
 					{
-						
+						player.mPlayerY = 0;
+						player.mPlayerX = 0;
 						if (pDi->KeyJustPressed(DIK_UP))
 						{
 							player.mPlayerY--;
@@ -417,6 +419,21 @@ int _stdcall WinMain
 						player.movePlayer();
 					}
 
+					if (pDi->KeyJustPressed(DIK_L))
+					{
+						for (int y = 0; y < 10; y++)
+						{
+							for (int x = 0; x < 10; x++)
+							{
+								shadow.stageShadow[y][x] = false;
+								if (stageMapT1[y][x] != 0)
+								{
+									shadow.MoveShadow(x, y, stageMapT1[y][x]);
+								}
+							}
+						}
+					}
+					
 
 					break;
 				case OVER:
@@ -437,18 +454,34 @@ int _stdcall WinMain
 				for (int y = 0; y < 10; y++)
 				{
 					//マップの描画
-					map.DrawMap(x, y, Pixel , player.playerX,player.playerY);
+					sprite.SetPos(Pixel / 2 + Pixel * x - Pixel * player.playerX,
+						Pixel / 2 + Pixel * y - Pixel * player.playerY);
+					if (stageMapT1[y][x] == 1)
+					{
+						sprite.Draw(texBlock00);
+					}
+					else if (stageMapT1[x][y] == 2)
+					{
+						sprite.Draw(texBlock01);
+					}
+					else if (stageMapT1[x][y] == 3)
+					{
+						sprite.Draw(texBlock02);
+					}
+					else if (stageMapT1[x][y] == 4)
+					{
+						sprite.Draw(texBlock03);
+					}
 
 					//影の描画
-					shadow.DrawShadow(x, y, Pixel);
+					shadow.DrawShadow(x, y, Pixel,sprite,texShadow);
 				}
 			}
 
 			//ゲームのスタートとオーバー時に表示する画像描画//-----------------------------------------
 
-		
 			//プレイヤーの描画//-----------------------------------------------------------------------
-			player.Drawplayer(Pixel, screenWidth, screenHeight);
+			player.Drawplayer(Pixel, screenWidth, screenHeight,sprite,texplayer);
 			
 			//描画終了の合図//-------------------------------------------------------------------------
 			

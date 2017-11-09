@@ -1,5 +1,8 @@
 #pragma once
 
+#include"Texture.h"
+#include"Sprite.h"
+
 class Player
 {
 private:
@@ -17,6 +20,6 @@ public:
 	int mPlayerX, mPlayerY;
 
 	void movePlayer();
-	void Drawplayer(int Pixel, int screenWidth, int screenHeight);
+	void Drawplayer(int Pixel, int screenWidth, int screenHeight,Sprite sprite,Texture tex);
 
 };
