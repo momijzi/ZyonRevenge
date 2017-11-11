@@ -20,6 +20,6 @@ public:
 	int mPlayerX, mPlayerY;
 
 	void movePlayer();
-	void Drawplayer(int Pixel, int screenWidth, int screenHeight,Sprite sprite,Texture tex);
+	void Drawplayer(int screenWidth, int screenHeight,Sprite *sprite,Texture &tex);
 
 };

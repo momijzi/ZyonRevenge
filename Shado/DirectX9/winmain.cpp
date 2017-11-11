@@ -15,8 +15,8 @@
 #include"Shadow.h"
 
 
-#define screenWidth 800
-#define screenHeight 600
+#define screenWidth 1260
+#define screenHeight 980
 #define Pixel 128
 
 
@@ -232,7 +232,7 @@ HRESULT MakeWindow
 //スプライトのインスタンスを作成
 //パラメータは適当で
 
-Sprite sprite;
+Sprite  sprite;
 Texture texplayer;
 Texture texShadow;
 Texture texBlock00;
@@ -254,20 +254,20 @@ int _stdcall WinMain
 {
 	//現在のゲームの状態
 	enum GameMode { ZERO,START, PLAY, OVER };
-	GameMode game = PLAY;
+	GameMode game = ZERO;
 
 	int stageMapT1[10][10] =
 	{	 					//10	
-		{ 0,0,0,0,0,0,0,0,0,0 },
-		{ 0,1,1,1,1,1,1,1,1,0 },
-		{ 0,0,0,0,0,0,0,0,0,0 },
-		{ 0,0,0,0,0,0,0,0,0,0 },
-		{ 0,0,0,0,0,0,0,0,0,0 },
-		{ 0,0,0,0,0,0,0,0,0,0 },
-		{ 0,1,1,1,1,1,1,1,1,0 },
-		{ 0,0,0,0,0,0,0,0,0,0 },
-		{ 0,0,0,0,0,0,0,0,0,0 },
-		{ 0,0,0,0,0,0,0,0,0,0 },
+		{ 1,1,1,1,1,1,1,1,1,1 },
+		{ 1,0,0,0,0,0,0,0,0,1 },
+		{ 1,0,0,0,0,0,2,1,0,1 },
+		{ 1,0,0,0,1,1,1,0,1,2 },
+		{ 1,1,0,3,0,0,0,1,2,1 },
+		{ 1,1,1,1,2,0,0,0,0,1 },
+		{ 1,0,2,0,1,2,1,0,0,2 },
+		{ 1,0,3,0,0,0,0,0,0,1 },
+		{ 1,0,4,0,0,0,0,0,1,1 },
+		{ 1,1,1,0,1,1,1,0,0,1 },
 	};
 
 	//他のファイルの値を使うため//-----------------------------------------------------------------------
@@ -386,6 +386,18 @@ int _stdcall WinMain
 			{
 				case ZERO:
 
+					for (int y = 0; y < 10; y++)
+					{
+						for (int x = 0; x < 10; x++)
+						{
+							shadow.stageShadow[y][x] = false;
+							if (stageMapT1[y][x] != 0)
+							{
+								shadow.MoveShadow(x, y, stageMapT1[y][x]);
+							}
+						}
+					}
+					game = PLAY;
 					break;
 				case START:
 
@@ -418,14 +430,40 @@ int _stdcall WinMain
 						}
 						player.movePlayer();
 					}
-
-					if (pDi->KeyJustPressed(DIK_L))
+					//光を回転させる
+					if (pDi->KeyJustPressed(DIK_L) || pDi->KeyJustPressed(DIK_R))
 					{
+						//右回転
+						if (pDi->KeyJustPressed(DIK_L))
+						{
+							shadow.lightWay++;
+						}
+						//左回転
+						else
+						{
+							shadow.lightWay--;
+						}
+						if (shadow.lightWay > 3)
+						{
+							shadow.lightWay = 0;
+						}
+						else if (shadow.lightWay < 0)
+						{
+							shadow.lightWay = 3;
+						}
+						//影の方角変更
+						//ここで影の位置を変更
 						for (int y = 0; y < 10; y++)
 						{
 							for (int x = 0; x < 10; x++)
 							{
 								shadow.stageShadow[y][x] = false;
+							}
+						}
+						for (int y = 0; y < 10; y++)
+						{
+							for (int x = 0; x < 10; x++)
+							{
 								if (stageMapT1[y][x] != 0)
 								{
 									shadow.MoveShadow(x, y, stageMapT1[y][x]);
@@ -434,7 +472,6 @@ int _stdcall WinMain
 						}
 					}
 					
-
 					break;
 				case OVER:
 
@@ -449,9 +486,9 @@ int _stdcall WinMain
 			d3d.ClearScreen();
 
 			//マップの描画
-			for (int x = 0; x < 10; x++)
+			for (int y = 0; y < 10; y++)
 			{
-				for (int y = 0; y < 10; y++)
+				for (int x = 0; x < 10; x++)
 				{
 					//マップの描画
 					sprite.SetPos(Pixel / 2 + Pixel * x - Pixel * player.playerX,
@@ -460,28 +497,29 @@ int _stdcall WinMain
 					{
 						sprite.Draw(texBlock00);
 					}
-					else if (stageMapT1[x][y] == 2)
+					else if (stageMapT1[y][x] == 2)
 					{
 						sprite.Draw(texBlock01);
 					}
-					else if (stageMapT1[x][y] == 3)
+					else if (stageMapT1[y][x] == 3)
 					{
 						sprite.Draw(texBlock02);
 					}
-					else if (stageMapT1[x][y] == 4)
+					else if (stageMapT1[y][x] == 4)
 					{
 						sprite.Draw(texBlock03);
+					}//影の描画
+					else if(shadow.stageShadow[y][x] == true)
+					{
+						shadow.DrawShadow(x, y, Pixel,player.playerX,player.playerY,&sprite,texShadow);
 					}
-
-					//影の描画
-					shadow.DrawShadow(x, y, Pixel,sprite,texShadow);
 				}
 			}
 
 			//ゲームのスタートとオーバー時に表示する画像描画//-----------------------------------------
 
 			//プレイヤーの描画//-----------------------------------------------------------------------
-			player.Drawplayer(Pixel, screenWidth, screenHeight,sprite,texplayer);
+			player.Drawplayer(screenWidth, screenHeight,&sprite,texplayer);
 			
 			//描画終了の合図//-------------------------------------------------------------------------
 			

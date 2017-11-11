@@ -15,10 +15,9 @@ public:
 
 	//影が出るかどうか
 	bool stageShadow[10][10];
-	enum LightWay{EAST,WEST,SOUTH,NORTH};
-	LightWay lightWay;
+	int lightWay;//光のある方向　東、南、西、北
 
 	void MoveShadow(int x, int y , int m);
-	void DrawShadow(int x, int y,int Pixel,Sprite sprite,Texture tex);
+	void DrawShadow(int x, int y,int Pixel,int px,int py,Sprite *sprite,Texture &tex);
 
 };

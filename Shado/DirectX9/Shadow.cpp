@@ -11,7 +11,7 @@ Shadow::Shadow()
 			stageShadow[x][y] = false;
 		}
 	}
-	lightWay = WEST;
+	lightWay = 0;
 }
 Shadow::~Shadow()
 {
@@ -20,34 +20,36 @@ Shadow::~Shadow()
 
 void Shadow::MoveShadow(int x, int y, int m)
 {
-	for (int shadow = 0; shadow < m; shadow++)
+	if (m > 1)
+	{
+		m--;
+	}
+	for (int shadow = 1; shadow <= m; shadow++)
 	{
 		switch (lightWay)
 		{
-			case EAST://“Œ
-				stageShadow[y][x + shadow] = true;
+			case 0://“Œ
+				stageShadow[y][x - shadow] = true;
 				break;
-			case WEST://¼
-				shadow * -1;
-				stageShadow[y][x + shadow] = true;
+			case 1://“ì
+				stageShadow[y - shadow][x] = true;
 				break;
-			case SOUTH://“ì
-				stageShadow[y + shadow][x] = true;
+			case 2://¼
+				stageShadow[y][x + shadow ] = true;
 				break;
-			case NORTH://–k
-				shadow * -1;
-				stageShadow[y + shadow][x] = true;
+			case 3://–k
+				stageShadow[y + shadow ][x] = true;
 				break;
 		}
 	}
 }
 
 
-void Shadow::DrawShadow(int x , int y ,int Pixel, Sprite sprite, Texture tex)
+void Shadow::DrawShadow(int x , int y ,int Pixel,int px,int py, Sprite *sprite, Texture &tex)
 {
 	if (stageShadow[y][x] == true)
 	{
-		sprite.SetPos(Pixel / 2 + Pixel * x, Pixel / 2 + Pixel * y);
-		sprite.Draw(tex);
+		sprite->SetPos(Pixel / 2 + Pixel * x - Pixel * px, Pixel / 2 + Pixel * y - Pixel * py);
+		sprite->Draw(tex);
 	}
 }

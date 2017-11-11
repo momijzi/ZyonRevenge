@@ -22,9 +22,9 @@ void Player::movePlayer()
 	playerY += mPlayerY;
 }
 
-void Player::Drawplayer(int Pixel , int screenWidth, int screenHeight,Sprite sprite,Texture tex)
+void Player::Drawplayer(int screenWidth, int screenHeight,Sprite *sprite,Texture &tex)
 {
-	sprite.SetPos(screenWidth / 2, screenHeight / 2);
-	sprite.Draw(tex);
+	sprite->SetPos(screenWidth / 2, screenHeight / 2);
+	sprite->Draw(tex);
 }
 
