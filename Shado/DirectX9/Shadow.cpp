@@ -12,44 +12,69 @@ Shadow::Shadow()
 		}
 	}
 	lightWay = 0;
+	X = -1, Y = -1;
 }
 Shadow::~Shadow()
 {
 
 }
+void Shadow::MoveLight(int l)
+{
+	lightWay += l;
+
+	//”ÍˆÍŠO‚É’l‚ªs‚Á‚½‚Æ‚«Å‰‚Ü‚½‚ÍÅŒã‚É–ß‚·
+	if (lightWay > 3)
+	{
+		lightWay = 0;
+	}
+	else if (lightWay < 0)
+	{
+		lightWay = 3;
+	}
+}
 
 void Shadow::MoveShadow(int x, int y, int m)
 {
-	if (m > 1)
+	if (m > 2)
 	{
-		m--;
+		m -= 2;
 	}
 	for (int shadow = 1; shadow <= m; shadow++)
 	{
+		X = -1, Y = -1;
 		switch (lightWay)
 		{
 			case 0://“Œ
-				stageShadow[y][x - shadow] = true;
+				Y = y;
+				X = x - shadow;
 				break;
 			case 1://“ì
-				stageShadow[y - shadow][x] = true;
+				X = x;
+				Y = y - shadow;
 				break;
 			case 2://¼
-				stageShadow[y][x + shadow ] = true;
+				X = x + shadow;
+				Y = y;
 				break;
 			case 3://–k
-				stageShadow[y + shadow ][x] = true;
+				X = x;
+				Y = y + shadow;
 				break;
+		}
+		if (X >= 0 && X < 10 && Y >= 0 && Y < 10)
+		{
+			stageShadow[Y][X] = true;
 		}
 	}
 }
 
 
-void Shadow::DrawShadow(int x , int y ,int Pixel,int px,int py, Sprite *sprite, Texture &tex)
+void Shadow::DrawShadow(int x , int y ,int Pixel,int px,int py, Sprite *sprite, Texture &tex,int sw,int sh)
 {
 	if (stageShadow[y][x] == true)
 	{
-		sprite->SetPos(Pixel / 2 + Pixel * x - Pixel * px, Pixel / 2 + Pixel * y - Pixel * py);
+		sprite->SetPos( Pixel * x - Pixel * px + sw / 2,
+			 Pixel * y - Pixel * py + sh / 2);
 		sprite->Draw(tex);
 	}
 }

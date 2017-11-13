@@ -8,6 +8,8 @@ class Shadow
 {
 private:
 
+	
+
 public:
 	
 	Shadow();
@@ -16,8 +18,10 @@ public:
 	//影が出るかどうか
 	bool stageShadow[10][10];
 	int lightWay;//光のある方向　東、南、西、北
+	int X, Y;
 
+	void MoveLight(int l);
 	void MoveShadow(int x, int y , int m);
-	void DrawShadow(int x, int y,int Pixel,int px,int py,Sprite *sprite,Texture &tex);
+	void DrawShadow(int x, int y,int Pixel,int px,int py,Sprite *sprite,Texture &tex, int sw, int sh);
 
 };

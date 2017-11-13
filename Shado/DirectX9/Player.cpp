@@ -5,8 +5,8 @@
 //コンストラクタという名の初期化
 Player::Player()
 {
-	playerX = 0;
-	playerY = 0;
+	playerX = 5;
+	playerY = 5;
 	mPlayerX = 0;
 	mPlayerY = 0;
 }
