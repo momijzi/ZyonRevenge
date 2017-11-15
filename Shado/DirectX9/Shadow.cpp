@@ -35,13 +35,20 @@ void Shadow::MoveLight(int l)
 
 void Shadow::MoveShadow(int x, int y, int m)
 {
+	//２より大きいのは定数となっている壁なので定数分だけマイナス
 	if (m > 2)
 	{
 		m -= 2;
 	}
+	//なにも受け付けない外壁はマイナスなので正の数に変更
+	else if (m < 0)
+	{
+		m = m * -1;
+	}
 	for (int shadow = 1; shadow <= m; shadow++)
 	{
 		X = -1, Y = -1;
+		
 		switch (lightWay)
 		{
 			case 0://東

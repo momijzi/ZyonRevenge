@@ -241,8 +241,8 @@ Texture texBlock20;
 Texture texBlock01;
 Texture texBlock02;
 Texture texBlock03;
-Texture Cursor;
-
+Texture texArrow;
+Texture texStair;
 
 //エントリーポイント
 //プログラムの開始関数
@@ -258,27 +258,47 @@ int _stdcall WinMain
 	enum GameMode { ZERO,START, PLAY, OVER };
 	GameMode game = ZERO;
 
+	//光のある方角
 	int lightw = 0;
 
 	Player player;
 	Shadow shadow;
 
+	//プレイヤーの座標
+	int px, py;
+	//プレイヤーの向いている方向
 	int pAngle = 0;
+	//マップの大きさ
 	const int stage1x = 10, stage1y = 10;
+
+	//-1=外壁、0=床、1|2=高さ1|2の移動可能な壁、3|4|5=動かない壁 3|4|5 -2分の高さ
 	int stageMapT1[stage1x][stage1y] =
 	{	 					//10
-		{ 1,1,1,1,1,1,1,1,1,1 },
-		{ 1,0,0,0,0,0,0,0,0,1 },
-		{ 1,0,0,0,0,0,3,1,0,1 },
-		{ 1,0,0,0,3,1,1,0,1,3 },
-		{ 1,3,0,4,0,0,0,1,3,1 },
-		{ 1,1,1,1,3,0,0,0,0,1 },
-		{ 1,0,3,0,1,3,1,0,0,4 },
-		{ 1,0,4,0,0,0,0,0,0,1 },
-		{ 1,0,5,0,0,0,0,0,1,1 },
-		{ 1,1,1,0,1,1,1,1,0,1 },
+		{ -1,-1,-1,-1,-1,-1,-1,-1,-1,-1 },
+		{ -1, 0, 0, 0, 0, 0, 0, 0, 0,-1 },
+		{ -1,-2, 0, 0, 0, 0, 3, 1, 0,-1 },
+		{ -1, 0, 0, 0, 3, 1, 1, 0, 1, 3 },
+		{ -1, 3, 0, 4, 0, 0, 1, 1, 3,-1 },
+		{ -1, 1, 1, 1, 3, 0, 0, 0, 0,-1 },
+		{ -1, 0, 3, 0, 1, 3, 1, 0, 0, 4 },
+		{ -1, 0, 4, 0, 0, 0, 0, 0, 0,-1 },
+		{ -1, 0, 5, 0, 0, 0, 0, 0, 1, 3 },
+		{ -1,-1,-1, 0,-1,-1,-1,-1, 0,-1 },
 	};
-
+	//矢印　0上、1右、2下、3左
+	int Arrow[stage1y][stage1x] =
+	{
+		{ -1,-1,-1,-1,-1,-1,-1,-1,-1,-1 },
+		{ -1,-1,-1,-1,-1,-1,-1,-1,-1,-1 },
+		{ -1,-1,-1,-1,-1,-1,-1, 3,-1,-1 },
+		{ -1,-1,-1,-1,-1, 3, 3,-1, 1,-1 },
+		{ -1,-1,-1,-1,-1,-1, 1, 1,-1,-1 },
+		{ -1, 0, 1, 1,-1,-1,-1,-1,-1,-1 },
+		{ -1,-1,-1,-1, 1,-1, 3,-1,-1,-1 },
+		{ -1,-1,-1,-1,-1,-1,-1,-1,-1,-1 },
+		{ -1,-1,-1,-1,-1,-1,-1,-1, 1,-1 },
+		{ -1,-1,-1,-1,-1,-1,-1,-1,-1,-1 },
+	};
 	//他のファイルの値を使うため//-----------------------------------------------------------------------
 
 	
@@ -330,6 +350,8 @@ int _stdcall WinMain
 	pSprite.SetAlpha(0.1);
 	pSprite.SetSize(Pixel, Pixel);
 
+
+
 	//テクスチャのインスタンスを作成
 	texplayer.Load(_T("Texture/Player.png"));
 	texShadow.Load(_T("Texture/Shadow.png"));
@@ -338,8 +360,8 @@ int _stdcall WinMain
 	texBlock01.Load(_T("Texture/Box01.png"));
 	texBlock02.Load(_T("Texture/Box02.png"));
 	texBlock03.Load(_T("Texture/Box03.png"));
-	Cursor.Load(_T("Texture/Cursor.png"));
-
+	texArrow.Load(_T("Texture/Arrow.png"));
+	texStair.Load(_T("Texture/DownStair.png"));
 	//ここで読み込んだ画像の分割処理
 	
 	DirectInput * pDi = DirectInput::GetInstance();
@@ -447,21 +469,32 @@ int _stdcall WinMain
 						}
 						player.movePlayer(stageMapT1[player.playerY + player.mPlayerY][player.playerX + player.mPlayerX]);
 					}
-					
+
+					px = player.playerX;
+					py = player.playerY;
+
 					//プレイヤーが前方のブロックを動かす（制限なし）
 					if (pDi->KeyJustPressed(DIK_RETURN) && /*前方が床ではないかどうか*/
-						stageMapT1[player.playerY + player.mPlayerY][player.playerX + player.mPlayerX] != 0 &&
+						stageMapT1[py + player.mPlayerY][player.playerX + player.mPlayerX] > 0 &&
 						stageMapT1[player.playerY + player.mPlayerY][player.playerX + player.mPlayerX] < 3 &&
-						stageMapT1[player.playerY + player.mPlayerY * 2][player.playerX + player.mPlayerX * 2] != 5)
+						stageMapT1[player.playerY + player.mPlayerY][player.playerX + player.mPlayerX] > -1 &&
+						stageMapT1[player.playerY + player.mPlayerY * 2][player.playerX + player.mPlayerX * 2] != 5 &&
+						Arrow[player.playerY + player.mPlayerY][player.playerX + player.mPlayerX] == pAngle &&
+						stageMapT1[player.playerY + player.mPlayerY][player.playerX + player.mPlayerX] +
+						stageMapT1[player.playerY + player.mPlayerY * 2][player.playerX + player.mPlayerX * 2] < 6)
 					{
-						if (stageMapT1[player.playerY + player.mPlayerY][player.playerX + player.mPlayerX] +
-							stageMapT1[player.playerY + player.mPlayerY * 2][player.playerX + player.mPlayerX * 2] < 6)
-							stageMapT1[player.playerY + player.mPlayerY * 2][player.playerX + player.mPlayerX * 2]
+						//ここで押した先に押した場所の高さ分だけプラスする
+						stageMapT1[player.playerY + player.mPlayerY * 2][player.playerX + player.mPlayerX * 2]
 							= stageMapT1[player.playerY + player.mPlayerY][player.playerX + player.mPlayerX] +
 							stageMapT1[player.playerY + player.mPlayerY * 2][player.playerX + player.mPlayerX * 2];
 
+						//矢印を消す
+						Arrow[player.playerY + player.mPlayerY][player.playerX + player.mPlayerX] = -1;
+
+						//押した場所を床に
 						stageMapT1[player.playerY + player.mPlayerY][player.playerX + player.mPlayerX]
 							= 0;
+
 
 						//影の方角変更
 						//ここで影の位置を変更
@@ -483,6 +516,7 @@ int _stdcall WinMain
 							}
 						}
 					}
+
 					//光を回転させる
 					else if (pDi->KeyJustPressed(DIK_L) || pDi->KeyJustPressed(DIK_R))
 					{
@@ -518,12 +552,26 @@ int _stdcall WinMain
 							}
 						}
 					}
-			
+					
+					//問題発生　何かが起きた（クリアorDESU）
+					if (shadow.stageShadow[player.playerY][player.playerX] == false ||
+						stageMapT1[py][px] == -2)
+					{
+						game = OVER;
+					}
 					
 					break;
 				case OVER:
+					//クリア
+					if (stageMapT1[py][px] == -2)
+					{
 
+					}
+					//返事がない　ただの屍のようだ
+					else if (shadow.stageShadow[player.playerY][player.playerX] == false)
+					{
 
+					}
 					break;
 
 
@@ -541,7 +589,8 @@ int _stdcall WinMain
 					//マップの描画
 					sprite.SetPos( Pixel * x - Pixel *  player.playerX + screenWidth / 2,
 						 Pixel * y - Pixel * player.playerY + screenHeight / 2);
-					if (stageMapT1[y][x] == 1)
+					sprite.SetAngle(0);
+					if (stageMapT1[y][x] == 1 || stageMapT1[y][x] == -1)
 					{
 						sprite.Draw(texBlock00);
 					}
@@ -560,11 +609,22 @@ int _stdcall WinMain
 					else if (stageMapT1[y][x] == 5)
 					{
 						sprite.Draw(texBlock03);
-					}//影の描画
+					}
+					else if (stageMapT1[y][x] == -2)
+					{
+						sprite.Draw(texStair);
+					}
+					//影の描画
 					else if(shadow.stageShadow[y][x] == true)
 					{
 						shadow.DrawShadow(x, y, Pixel,player.playerX,player.playerY,
 							&sprite,texShadow,screenWidth,screenHeight);
+					}
+
+					if (Arrow[y][x] > -1)
+					{
+						sprite.SetAngle(PI / 2 * Arrow[y][x]);
+						sprite.Draw(texArrow);
 					}
 				}
 			}
