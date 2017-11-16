@@ -19,9 +19,8 @@ Player::~Player()
 
 void Player::movePlayer(int map)
 {
-	
 	//è∞Ç≈Ç†ÇÈÇ»ÇÁêiÇﬂÇÈ
-	if (map == 0)
+	if (map == 0 || map == -2)
 	{
 		playerX += mPlayerX;
 		playerY += mPlayerY;
